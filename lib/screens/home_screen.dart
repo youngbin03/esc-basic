@@ -18,6 +18,15 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _checkVoteStatus();
+  }
+
+  void _checkVoteStatus() async {
+    final userId = context.read<AuthService>().getUserId();
+    if (userId != null && userId.isNotEmpty) {
+      await Provider.of<VoteProvider>(context, listen: false)
+          .checkIfVoteCompleted(userId);
+    }
   }
 
   @override

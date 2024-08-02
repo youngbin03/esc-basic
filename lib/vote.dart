@@ -5,7 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
 class VotePage extends StatefulWidget {
-  const VotePage({Key? key}) : super(key: key);
+  final String userName;
+
+  const VotePage({Key? key, required this.userName}) : super(key: key);
 
   @override
   _VotePageState createState() => _VotePageState();
@@ -15,13 +17,28 @@ class _VotePageState extends State<VotePage> {
   int _currentQuestionIndex = 0;
   List<Map<String, dynamic>> _questions = [];
   bool _isLoading = true;
-  bool _isShuffled = false;
   List<String> _userNames = []; // 사용자 이름 리스트
 
   @override
   void initState() {
     super.initState();
+    print(
+        "VotePage initialized with userName: ${widget.userName}"); // 디버깅 메시지 추가
     _fetchQuestions();
+    _checkIfVoteCompleted();
+  }
+
+  Future<void> _checkIfVoteCompleted() async {
+    if (widget.userName.isNotEmpty) {
+      await Provider.of<VoteProvider>(context, listen: false)
+          .checkIfVoteCompletedByUserName(widget.userName);
+
+      if (Provider.of<VoteProvider>(context, listen: false).isVoteCompleted) {
+        Navigator.pushReplacementNamed(context, '/'); // 투표 완료 시 메인 화면으로 이동
+      }
+    } else {
+      print("User name is empty or null"); // 디버깅 메시지 추가
+    }
   }
 
   Future<void> _fetchQuestions() async {
@@ -29,10 +46,16 @@ class _VotePageState extends State<VotePage> {
 
     // 질문을 가져오는 로직
     final questionSnapshot = await firestore.collection('questions').get();
-
-    final questions = questionSnapshot.docs.map((doc) {
-      return {'question': doc['question'], 'image': doc['image']};
+    final allQuestions = questionSnapshot.docs.map((doc) {
+      return {
+        'question': doc['question'],
+        'image': doc['image'],
+      };
     }).toList();
+
+    // 질문을 랜덤으로 최대 5개 선택
+    allQuestions.shuffle();
+    final questions = allQuestions.take(5).toList();
 
     // 사용자 정보를 가져오는 로직
     final userSnapshot = await firestore.collection('users').get();
@@ -43,6 +66,7 @@ class _VotePageState extends State<VotePage> {
       _questions = questions;
       _userNames = userNames; // 사용자 이름 설정
       _isLoading = false;
+      _shuffleOptions(); // 첫 번째 질문의 선택지를 섞음
     });
   }
 
@@ -50,18 +74,22 @@ class _VotePageState extends State<VotePage> {
     if (_currentQuestionIndex < _questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
-        _isShuffled = false;
+        _shuffleOptions(); // 다음 질문으로 넘어갈 때 선택지 섞기
       });
     } else {
-      Provider.of<VoteProvider>(context, listen: false).completeVote();
-      Navigator.pushReplacementNamed(context, '/');
+      if (widget.userName.isNotEmpty) {
+        Provider.of<VoteProvider>(context, listen: false)
+            .completeVote(widget.userName);
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        print("User name is empty or null"); // 디버깅 메시지 추가
+      }
     }
   }
 
   void _shuffleOptions() {
     setState(() {
       _userNames.shuffle(); // 사용자 이름 섞기
-      _isShuffled = true;
     });
   }
 
@@ -188,7 +216,7 @@ class _VotePageState extends State<VotePage> {
                   mainAxisSpacing: 16.0,
                   childAspectRatio: 2,
                 ),
-                itemCount: _userNames.length, // 사용자 이름 리스트 크기
+                itemCount: 4, // 사용자 이름 리스트 크기
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
@@ -259,7 +287,7 @@ class _VotePageState extends State<VotePage> {
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 18),
             ],
           ),
         ),

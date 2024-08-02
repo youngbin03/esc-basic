@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,10 @@ class AuthService extends ChangeNotifier {
 
   User? currentUser() {
     return _auth.currentUser;
+  }
+
+  String? getUserId() {
+    return _auth.currentUser?.uid;
   }
 
   String? getUserName() {
@@ -31,6 +34,19 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _updateClassCount(String group) async {
+    DocumentReference classRef = _firestore.collection('classes').doc(group);
+    _firestore.runTransaction((transaction) async {
+      DocumentSnapshot classSnapshot = await transaction.get(classRef);
+      if (!classSnapshot.exists) {
+        transaction.set(classRef, {'count': 1});
+      } else {
+        int newCount = classSnapshot['count'] + 1;
+        transaction.update(classRef, {'count': newCount});
+      }
+    });
+  }
+
   void signUp({
     required String name,
     required String password,
@@ -49,15 +65,21 @@ class AuthService extends ChangeNotifier {
       String email = '$name@bump.com';
 
       UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
       // Firestore에 유저 정보 저장
       await _firestore.collection('users').doc(userCredential.user?.uid).set({
         'name': name,
         'class': group,
+        'isDone': false, // 기본값 설정
       });
+
+      // 클래스 인원수 업데이트
+      await _updateClassCount(group);
+
       // 성공 함수 호출
       onSuccess();
     } on FirebaseAuthException catch (e) {
@@ -87,7 +109,7 @@ class AuthService extends ChangeNotifier {
     }
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await _auth.signInWithEmailAndPassword(
         email: '$name@bump.com',
         password: password,
       );
@@ -101,7 +123,25 @@ class AuthService extends ChangeNotifier {
   }
 
   void signOut() async {
-    await FirebaseAuth.instance.signOut();
+    await _auth.signOut();
     notifyListeners();
+  }
+
+  Future<void> setVoteCompleted() async {
+    final userName = getUserName();
+    if (userName != null) {
+      QuerySnapshot query = await _firestore
+          .collection('users')
+          .where('name', isEqualTo: userName)
+          .get();
+      if (query.docs.isNotEmpty) {
+        String docId = query.docs.first.id;
+        await _firestore
+            .collection('users')
+            .doc(docId)
+            .update({'isDone': true});
+        notifyListeners();
+      }
+    }
   }
 }

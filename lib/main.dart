@@ -47,7 +47,9 @@ class MyApp extends StatelessWidget {
             '/home': (context) => HomeScreen(),
             '/signin': (context) => SigninScreen(),
             '/photo': (context) => ProfilePhotoScreen(),
-            '/vote': (context) => VotePage()
+            '/vote': (context) => VotePage(
+                  userName: '',
+                )
           },
         );
       },
