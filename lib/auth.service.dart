@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -6,6 +8,24 @@ class AuthService extends ChangeNotifier {
 
   User? currentUser() {
     return _auth.currentUser;
+  }
+
+  String? getUserName() {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final email = user.email!;
+      return email.split('@')[0]; // 이메일의 '@' 앞 부분을 이름으로 사용
+    }
+    return null;
+  }
+
+  File? _profileImage;
+
+  File? get profileImage => _profileImage;
+
+  void setProfileImage(File? image) {
+    _profileImage = image;
+    notifyListeners();
   }
 
   void signUp({

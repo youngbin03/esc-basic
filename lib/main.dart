@@ -1,6 +1,7 @@
 import 'package:bump/auth.service.dart';
 import 'package:bump/screens/enter_class_screen.dart';
 import 'package:bump/screens/home_screen.dart';
+import 'package:bump/screens/profile_photo_screen.dart';
 import 'package:bump/screens/signup_screen.dart';
 import 'package:bump/screens/onboarding_screen.dart';
 import 'package:bump/screens/signin_screen.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
             '/login': (context) => LoginScreen(),
             '/home': (context) => HomeScreen(),
             '/signin': (context) => SigninScreen(),
+            '/photo': (context) => ProfilePhotoScreen()
           },
         );
       },

@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         content: Text("회원가입 성공"),
                       ));
                       Navigator.pop(context); // 바텀시트를 닫고 홈 화면으로 이동
-                      Navigator.pushNamed(context, '/home');
+                      Navigator.pushNamed(context, '/photo');
                     },
                     onError: (err) {
                       print("회원가입 실패: $err");

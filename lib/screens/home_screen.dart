@@ -26,8 +26,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final userName = context.read<AuthService>().getUserName();
     return Scaffold(
       appBar: AppBar(
+        title: Text('$userName'),
         leading: IconButton(
           icon: Icon(CupertinoIcons.back,
               color: Colors.white), // iOS 스타일의 뒤로가기 아이콘 및 색상
@@ -96,8 +98,29 @@ class VoteScreen extends StatelessWidget {
 class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final profileImage = context.watch<AuthService>().profileImage;
     return Center(
-      child: Text('Welcome to Profile page!'),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 80, // Adjust the radius as needed
+            backgroundImage:
+                profileImage != null ? FileImage(profileImage) : null,
+            child: profileImage == null
+                ? Icon(
+                    CupertinoIcons.person_fill,
+                    size: 80,
+                  )
+                : null,
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Welcome to Profile page!',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
     );
   }
 }
