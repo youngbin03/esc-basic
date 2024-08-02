@@ -1,8 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
-class EnterClass extends StatelessWidget {
+class EnterClass extends StatefulWidget {
   const EnterClass({Key? key}) : super(key: key);
+
+  @override
+  State<EnterClass> createState() => _EnterClassState();
+}
+
+class _EnterClassState extends State<EnterClass> {
+  int basicClassCount = 0;
+  int advanceClassCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchClassCounts();
+  }
+
+  Future<void> _fetchClassCounts() async {
+    final firestore = FirebaseFirestore.instance;
+
+    // Basic Class count
+    final basicSnapshot = await firestore
+        .collection('users')
+        .where('class', isEqualTo: 'Basic Class')
+        .get();
+    final basicCount = basicSnapshot.docs.length;
+
+    // Advance Class count
+    final advanceSnapshot = await firestore
+        .collection('users')
+        .where('class', isEqualTo: 'Advance Class')
+        .get();
+    final advanceCount = advanceSnapshot.docs.length;
+
+    setState(() {
+      basicClassCount = basicCount;
+      advanceClassCount = advanceCount;
+    });
+  }
 
   Widget buildClassCard(BuildContext context, String className,
       String university, String status, int count) {
@@ -22,7 +60,7 @@ class EnterClass extends StatelessWidget {
       ),
       child: TextButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/login');
+          Navigator.pushNamed(context, '/signup', arguments: className);
         },
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -127,9 +165,11 @@ class EnterClass extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildClassCard(context, 'Basic Class', '한양대학교 컴퓨터소프트', '사용중', 0),
+            buildClassCard(
+                context, 'Basic Class', '한양대학교 컴퓨터소프트', '사용중', basicClassCount),
             SizedBox(height: 16),
-            buildClassCard(context, 'Advance Class', '한양대학교 컴퓨터소프트', '사용중', 0),
+            buildClassCard(context, 'Advance Class', '한양대학교 컴퓨터소프트', '사용중',
+                advanceClassCount),
           ],
         ),
       ),

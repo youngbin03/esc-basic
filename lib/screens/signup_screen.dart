@@ -4,14 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:bump/auth.service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class SignUp extends StatefulWidget {
+  const SignUp({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<SignUp> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -52,7 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showBottomSheet(BuildContext context, String name) {
+  void _showBottomSheet(
+      BuildContext context, String name, String selectedClass) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -132,6 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   final authService =
                       Provider.of<AuthService>(context, listen: false);
                   authService.signUp(
+                    group: selectedClass,
                     name: nameController.text,
                     password: passwordController.text,
                     onSuccess: () {
@@ -178,6 +180,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String selectedClass =
+        ModalRoute.of(context)!.settings.arguments as String;
     return Consumer<AuthService>(
       builder: (context, authService, child) {
         return Scaffold(
@@ -261,7 +265,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(
                       child: ElevatedButton(
                         onPressed: () {
-                          _showBottomSheet(context, nameController.text);
+                          _showBottomSheet(
+                              context, nameController.text, selectedClass);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,

@@ -6,9 +6,12 @@ import 'package:bump/screens/signup_screen.dart';
 import 'package:bump/screens/onboarding_screen.dart';
 import 'package:bump/screens/signin_screen.dart';
 import 'package:bump/vote.dart';
+import 'package:bump/voteprovider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'auth.service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // main 함수에서 async 사용하기 위함
@@ -17,6 +20,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthService()),
+        ChangeNotifierProvider(create: (_) => VoteProvider()),
       ],
       child: const MyApp(),
     ),
@@ -39,7 +43,7 @@ class MyApp extends StatelessWidget {
           home: user == null ? HomeScreen() : HomeScreen(),
           routes: {
             '/enter': (context) => EnterClass(),
-            '/login': (context) => LoginScreen(),
+            '/signup': (context) => SignUp(),
             '/home': (context) => HomeScreen(),
             '/signin': (context) => SigninScreen(),
             '/photo': (context) => ProfilePhotoScreen(),

@@ -1,10 +1,13 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance; // Firestore 인스턴스 초기화
 
   User? currentUser() {
     return _auth.currentUser;
@@ -31,6 +34,7 @@ class AuthService extends ChangeNotifier {
   void signUp({
     required String name,
     required String password,
+    required String group,
     required Function() onSuccess,
     required Function(String err) onError,
   }) async {
@@ -44,10 +48,16 @@ class AuthService extends ChangeNotifier {
     try {
       String email = '$name@bump.com';
 
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      // Firestore에 유저 정보 저장
+      await _firestore.collection('users').doc(userCredential.user?.uid).set({
+        'name': name,
+        'class': group,
+      });
       // 성공 함수 호출
       onSuccess();
     } on FirebaseAuthException catch (e) {
