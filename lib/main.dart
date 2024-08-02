@@ -5,6 +5,7 @@ import 'package:bump/screens/profile_photo_screen.dart';
 import 'package:bump/screens/signup_screen.dart';
 import 'package:bump/screens/onboarding_screen.dart';
 import 'package:bump/screens/signin_screen.dart';
+import 'package:bump/vote.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,13 +36,14 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             fontFamily: 'Pretendard',
           ),
-          home: user == null ? Onboarding() : HomeScreen(),
+          home: user == null ? HomeScreen() : HomeScreen(),
           routes: {
             '/enter': (context) => EnterClass(),
             '/login': (context) => LoginScreen(),
             '/home': (context) => HomeScreen(),
             '/signin': (context) => SigninScreen(),
-            '/photo': (context) => ProfilePhotoScreen()
+            '/photo': (context) => ProfilePhotoScreen(),
+            '/vote': (context) => VotePage()
           },
         );
       },

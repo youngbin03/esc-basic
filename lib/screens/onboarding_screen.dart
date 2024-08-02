@@ -7,6 +7,7 @@ class Onboarding extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Container(),
         backgroundColor: Colors.white,
       ),
       backgroundColor: Colors.white,
@@ -96,6 +97,7 @@ class Onboarding extends StatelessWidget {
                 child: Text(
                   'EOS 인증하기',
                   style: TextStyle(
+                    fontSize: 16,
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
@@ -139,6 +141,7 @@ class Onboarding extends StatelessWidget {
                   child: Text(
                     '이미 가입했다면 로그인!',
                     style: TextStyle(
+                      fontSize: 16,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),

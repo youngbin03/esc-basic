@@ -1,4 +1,5 @@
 import 'package:bump/auth.service.dart';
+import 'package:bump/vote.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -28,32 +29,9 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final userName = context.read<AuthService>().getUserName();
     return Scaffold(
+      backgroundColor: Colors.white, // Set background color to white
       appBar: AppBar(
-        title: Text('$userName'),
-        leading: IconButton(
-          icon: Icon(CupertinoIcons.back,
-              color: Colors.white), // iOS 스타일의 뒤로가기 아이콘 및 색상
-          onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-          },
-        ),
-        actions: [
-          TextButton(
-              onPressed: () {
-                context.read<AuthService>().signOut();
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/signin', (route) => false);
-              },
-              child: Text(
-                '로그아웃',
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ))
-        ],
+        leading: Container(),
         backgroundColor: Colors.transparent,
         bottom: TabBar(
           controller: _tabController,
@@ -62,6 +40,9 @@ class _HomeScreenState extends State<HomeScreen>
             Tab(text: '투표하기'),
             Tab(text: '프로필 페이지'),
           ],
+          indicatorColor: Colors.orange, // 선택된 탭의 하단 막대기 색상 설정
+          labelColor: Colors.orange, // 선택된 탭의 텍스트 색상 설정
+          unselectedLabelColor: Colors.grey, // 선택되지 않은 탭의 텍스트 색상 설정
         ),
         elevation: 0,
       ),
@@ -90,7 +71,65 @@ class VoteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text('Welcome to Vote page!'),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return LinearGradient(
+                colors: [Colors.red, Color.fromARGB(255, 255, 115, 0)],
+                tileMode: TileMode.mirror,
+              ).createShader(bounds);
+            },
+            child: Text(
+              '친구들은 나를\n 어떻게 생각할까?',
+              textAlign: TextAlign.center, // 텍스트 중앙 정렬
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: Colors.white, // 이 색상은 ShaderMask에 의해 덮어씌워집니다.
+              ),
+            ),
+          ),
+          SizedBox(height: 24),
+          Image(
+            image: AssetImage('assets/images/quiet.png'),
+            width: 200,
+            height: 200,
+          ),
+          SizedBox(height: 32),
+          Container(
+            width: 250, // 버튼의 고정 너비 설정
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/vote');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Text(
+                '투표 시작하기',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }
@@ -98,26 +137,102 @@ class VoteScreen extends StatelessWidget {
 class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final userName = context.read<AuthService>().getUserName();
     final profileImage = context.watch<AuthService>().profileImage;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 80, // Adjust the radius as needed
-            backgroundImage:
-                profileImage != null ? FileImage(profileImage) : null,
-            child: profileImage == null
-                ? Icon(
-                    CupertinoIcons.person_fill,
-                    size: 80,
-                  )
-                : null,
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey[800],
+              radius: 80,
+              backgroundImage:
+                  profileImage != null ? FileImage(profileImage) : null,
+              child: profileImage == null
+                  ? Icon(
+                      CupertinoIcons.person_fill,
+                      color: Colors.white,
+                      size: 80,
+                    )
+                  : null,
+            ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 36),
           Text(
-            'Welcome to Profile page!',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            '$userName',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 24),
+          Container(
+            width: 250,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<AuthService>().signOut();
+                Navigator.pushNamedAndRemoveUntil(
+                    context, '/signin', (route) => false);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Text(
+                '로그아웃',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 16),
+          Container(
+            width: 250,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                // 회원 탈퇴 로직을 여기에 추가하세요
+                // 예시: context.read<AuthService>().deleteAccount();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Text(
+                '회원 탈퇴',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
         ],
       ),
