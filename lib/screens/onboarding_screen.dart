@@ -119,6 +119,7 @@ class Onboarding extends StatelessWidget {
               ),
               child: ElevatedButton(
                 onPressed: () {
+                  Navigator.pushNamed(context, '/signin');
                   // 버튼 클릭 시 수행할 작업
                 },
                 style: ElevatedButton.styleFrom(

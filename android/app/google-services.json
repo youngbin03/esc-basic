@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "990691313684",
+    "project_id": "bump-c23e6",
+    "storage_bucket": "bump-c23e6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990691313684:android:30804be2fe15f1a18c7f01",
+        "android_client_info": {
+          "package_name": "com.example.bump"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGkTYoxSFJv0yHsTLpV11lKD-lj-dY64k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

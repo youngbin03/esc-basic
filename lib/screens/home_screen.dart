@@ -1,5 +1,7 @@
+import 'package:bump/auth.service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -30,9 +32,26 @@ class _HomeScreenState extends State<HomeScreen>
           icon: Icon(CupertinoIcons.back,
               color: Colors.white), // iOS 스타일의 뒤로가기 아이콘 및 색상
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
           },
         ),
+        actions: [
+          TextButton(
+              onPressed: () {
+                context.read<AuthService>().signOut();
+                Navigator.pushNamedAndRemoveUntil(
+                    context, '/signin', (route) => false);
+              },
+              child: Text(
+                '로그아웃',
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                ),
+              ))
+        ],
         backgroundColor: Colors.transparent,
         bottom: TabBar(
           controller: _tabController,
