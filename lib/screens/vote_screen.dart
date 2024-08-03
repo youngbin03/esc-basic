@@ -1,4 +1,5 @@
 import 'package:bump/auth.service.dart';
+import 'package:bump/screens/create_screen.dart';
 import 'package:bump/vote.dart';
 import 'package:bump/voteprovider.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,11 @@ class VoteScreen extends StatelessWidget {
                       ),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/home');
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CreateScreen()),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
@@ -65,7 +70,7 @@ class VoteScreen extends StatelessWidget {
                           padding: EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(
-                          '투표 완료하기',
+                          '투표 질문만들기',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.white,

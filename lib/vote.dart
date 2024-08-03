@@ -51,8 +51,10 @@ class _VotePageState extends State<VotePage> {
 
     // 사용자 정보를 가져오는 로직
     final userSnapshot = await firestore.collection('users').get();
-    final userNames =
-        userSnapshot.docs.map((doc) => doc['name'].toString()).toList();
+    final userNames = userSnapshot.docs
+        .map((doc) => doc['name'].toString())
+        .where((name) => name != widget.userName)
+        .toList();
 
     setState(() {
       _questions = questions;
