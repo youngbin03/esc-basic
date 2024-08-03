@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'auth.service.dart';
 
 class VoteProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -12,40 +14,14 @@ class VoteProvider with ChangeNotifier {
     if (userDoc.exists) {
       _isVoteCompleted = userDoc.data()?['isDone'] ?? false;
       notifyListeners();
+    } else {
+      _isVoteCompleted = false; // 유저가 존재하지 않으면 false로 설정
+      notifyListeners();
     }
   }
 
-  Future<void> checkIfVoteCompletedByUserName(String userName) async {
-    print("Checking vote completion for user: $userName"); // 디버깅 메시지 추가
-    final query = await _firestore
-        .collection('users')
-        .where('name', isEqualTo: userName)
-        .get();
-    if (query.docs.isNotEmpty) {
-      final userDoc = query.docs.first;
-      _isVoteCompleted = userDoc.data()['isDone'] ?? false;
-      notifyListeners();
-    } else {
-      print("No user found with name: $userName"); // 디버깅 메시지 추가
-    }
-  }
-
-  Future<void> completeVote(String userName) async {
-    print("Completing vote for user: $userName"); // 디버깅 메시지 추가
-    final query = await _firestore
-        .collection('users')
-        .where('name', isEqualTo: userName)
-        .get();
-    if (query.docs.isNotEmpty) {
-      final userDoc = query.docs.first;
-      await _firestore
-          .collection('users')
-          .doc(userDoc.id)
-          .update({'isDone': true});
-      _isVoteCompleted = true;
-      notifyListeners();
-    } else {
-      print("No user found with name: $userName"); // 디버깅 메시지 추가
-    }
+  void setVoteCompleted(bool isCompleted) {
+    _isVoteCompleted = isCompleted;
+    notifyListeners();
   }
 }

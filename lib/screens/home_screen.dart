@@ -22,11 +22,9 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _checkVoteStatus() async {
-    final userId = context.read<AuthService>().getUserId();
-    if (userId != null && userId.isNotEmpty) {
-      await Provider.of<VoteProvider>(context, listen: false)
-          .checkIfVoteCompleted(userId);
-    }
+    final authService = context.read<AuthService>();
+    final isCompleted = await authService.isVoteCompleted();
+    context.read<VoteProvider>().setVoteCompleted(isCompleted);
   }
 
   @override
@@ -37,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final userName = context.read<AuthService>().getUserName();
     return Scaffold(
       backgroundColor: Colors.white, // Set background color to white
       appBar: AppBar(
@@ -114,43 +111,83 @@ class VoteScreen extends StatelessWidget {
                 height: 200,
               ),
               SizedBox(height: 32),
-              Container(
-                width: 250, // 버튼의 고정 너비 설정
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.red,
-                      const Color.fromARGB(255, 255, 136, 0)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (voteProvider.isVoteCompleted) {
-                      Navigator.pushNamed(
-                          context, '/results'); // 투표 결과 확인 페이지로 이동
-                    } else {
-                      Navigator.pushNamed(context, '/vote');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    voteProvider.isVoteCompleted ? '투표 결과 확인하기' : '투표 시작하기',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+              voteProvider.isVoteCompleted
+                  ? Container(
+                      width: 250, // 버튼의 고정 너비 설정
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.red,
+                            const Color.fromARGB(255, 255, 136, 0)
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/home');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          '투표 완료하기',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: 250, // 버튼의 고정 너비 설정
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.red,
+                            const Color.fromARGB(255, 255, 136, 0)
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final userName =
+                              await context.read<AuthService>().getUserName();
+                          if (userName != null && userName.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    VotePage(userName: userName),
+                              ),
+                            );
+                          } else {
+                            print("User name is null or empty");
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          '투표 시작하기',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
               SizedBox(height: 24),
             ],
           ),
@@ -163,105 +200,129 @@ class VoteScreen extends StatelessWidget {
 class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final userName = context.read<AuthService>().getUserName();
+    final authService = context.read<AuthService>();
     final profileImage = context.watch<AuthService>().profileImage;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey[800],
-              radius: 80,
-              backgroundImage:
-                  profileImage != null ? FileImage(profileImage) : null,
-              child: profileImage == null
-                  ? Icon(
-                      CupertinoIcons.person_fill,
-                      color: Colors.white,
-                      size: 80,
-                    )
-                  : null,
-            ),
-          ),
-          SizedBox(height: 36),
-          Text(
-            '$userName',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 24),
-          Container(
-            width: 250,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: ElevatedButton(
-              onPressed: () {
-                context.read<AuthService>().signOut();
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/signin', (route) => false);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                padding: EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: Text(
-                '로그아웃',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+
+    return FutureBuilder<String?>(
+      future: authService.getUserName(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return Center(child: Text('User name not found'));
+        } else {
+          final userName = snapshot.data!;
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.red,
+                        const Color.fromARGB(255, 255, 136, 0)
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.grey[800],
+                    radius: 80,
+                    backgroundImage:
+                        profileImage != null ? FileImage(profileImage) : null,
+                    child: profileImage == null
+                        ? Icon(
+                            CupertinoIcons.person_fill,
+                            color: Colors.white,
+                            size: 80,
+                          )
+                        : null,
+                  ),
                 ),
-              ),
-            ),
-          ),
-          SizedBox(height: 16),
-          Container(
-            width: 250,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.red, const Color.fromARGB(255, 255, 136, 0)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: ElevatedButton(
-              onPressed: () {
-                // 회원 탈퇴 로직을 여기에 추가하세요
-                // 예시: context.read<AuthService>().deleteAccount();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                padding: EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: Text(
-                '회원 탈퇴',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                SizedBox(height: 36),
+                Text(
+                  userName,
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 ),
-              ),
+                SizedBox(height: 24),
+                Container(
+                  width: 250,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.red,
+                        const Color.fromARGB(255, 255, 136, 0)
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      authService.signOut();
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/signin', (route) => false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(
+                      '로그아웃',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Container(
+                  width: 250,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.red,
+                        const Color.fromARGB(255, 255, 136, 0)
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // 회원 탈퇴 로직을 여기에 추가하세요
+                      // 예시: authService.deleteAccount();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(
+                      '회원 탈퇴',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        }
+      },
     );
   }
 }

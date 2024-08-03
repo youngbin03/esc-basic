@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             fontFamily: 'Pretendard',
           ),
-          home: user == null ? HomeScreen() : HomeScreen(),
+          home: user == null ? Onboarding() : HomeScreen(),
           routes: {
             '/enter': (context) => EnterClass(),
             '/signup': (context) => SignUp(),

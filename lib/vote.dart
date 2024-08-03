@@ -1,3 +1,4 @@
+import 'package:bump/auth.service.dart';
 import 'package:bump/voteprovider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ class _VotePageState extends State<VotePage> {
   List<Map<String, dynamic>> _questions = [];
   bool _isLoading = true;
   List<String> _userNames = []; // 사용자 이름 리스트
+  bool _voteCompleted = false; // 투표 완료 여부
 
   @override
   void initState() {
@@ -25,20 +27,6 @@ class _VotePageState extends State<VotePage> {
     print(
         "VotePage initialized with userName: ${widget.userName}"); // 디버깅 메시지 추가
     _fetchQuestions();
-    _checkIfVoteCompleted();
-  }
-
-  Future<void> _checkIfVoteCompleted() async {
-    if (widget.userName.isNotEmpty) {
-      await Provider.of<VoteProvider>(context, listen: false)
-          .checkIfVoteCompletedByUserName(widget.userName);
-
-      if (Provider.of<VoteProvider>(context, listen: false).isVoteCompleted) {
-        Navigator.pushReplacementNamed(context, '/'); // 투표 완료 시 메인 화면으로 이동
-      }
-    } else {
-      print("User name is empty or null"); // 디버깅 메시지 추가
-    }
   }
 
   Future<void> _fetchQuestions() async {
@@ -77,13 +65,9 @@ class _VotePageState extends State<VotePage> {
         _shuffleOptions(); // 다음 질문으로 넘어갈 때 선택지 섞기
       });
     } else {
-      if (widget.userName.isNotEmpty) {
-        Provider.of<VoteProvider>(context, listen: false)
-            .completeVote(widget.userName);
-        Navigator.pushReplacementNamed(context, '/');
-      } else {
-        print("User name is empty or null"); // 디버깅 메시지 추가
-      }
+      setState(() {
+        _voteCompleted = true; // 모든 질문 완료 시 투표 완료 상태로 설정
+      });
     }
   }
 
@@ -91,6 +75,44 @@ class _VotePageState extends State<VotePage> {
     setState(() {
       _userNames.shuffle(); // 사용자 이름 섞기
     });
+  }
+
+  void _completeVote() async {
+    print(
+        "Complete vote called with userName: ${widget.userName}"); // 디버깅 메시지 추가
+    if (widget.userName.isNotEmpty) {
+      final firestore = FirebaseFirestore.instance;
+
+      try {
+        // 사용자 문서 찾기
+        final userQuery = await firestore
+            .collection('users')
+            .where('name', isEqualTo: widget.userName)
+            .get();
+
+        if (userQuery.docs.isNotEmpty) {
+          final userDocId = userQuery.docs.first.id;
+
+          // isDone 필드를 true로 업데이트
+          await firestore
+              .collection('users')
+              .doc(userDocId)
+              .update({'isDone': true});
+        } else {
+          print("User document not found"); // 사용자 문서가 없을 경우 디버깅 메시지
+        }
+
+        // AuthService에서 투표 완료 상태 설정
+        await Provider.of<AuthService>(context, listen: false)
+            .setVoteCompletedByUserName(widget.userName, true);
+
+        Navigator.pushReplacementNamed(context, '/home');
+      } catch (e) {
+        print("Error updating user document: $e"); // 오류 발생 시 디버깅 메시지
+      }
+    } else {
+      print("User name is empty or null"); // 디버깅 메시지 추가
+    }
   }
 
   @override
@@ -103,42 +125,56 @@ class _VotePageState extends State<VotePage> {
       );
     }
 
-    if (_questions.isEmpty || _currentQuestionIndex >= _questions.length) {
+    if (_voteCompleted) {
       return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(CupertinoIcons.clear, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/');
-            },
-          ),
-          title: Text('투표 완료', style: TextStyle(color: Colors.white)),
+          leading: Container(),
         ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.red,
-                Colors.orange,
-                const Color.fromARGB(255, 255, 136, 0)
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              '오늘의 투표는 끝났습니다!',
-              style: const TextStyle(
-                fontFamily: 'Pretendard',
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 35,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 36),
+              Image(
+                image: AssetImage('assets/images/vote.png'),
+                width: 200,
+                height: 200,
               ),
-              textAlign: TextAlign.center,
-            ),
+              SizedBox(height: 120),
+              Container(
+                width: 250,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.red,
+                      const Color.fromARGB(255, 255, 136, 0)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: ElevatedButton(
+                  onPressed: _completeVote,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    '투표 완료하기',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+            ],
           ),
         ),
       );

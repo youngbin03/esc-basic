@@ -16,11 +16,14 @@ class AuthService extends ChangeNotifier {
     return _auth.currentUser?.uid;
   }
 
-  String? getUserName() {
-    final user = _auth.currentUser;
+  Future<String?> getUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final email = user.email!;
-      return email.split('@')[0]; // 이메일의 '@' 앞 부분을 이름으로 사용
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      return userDoc['name'];
     }
     return null;
   }
@@ -128,20 +131,45 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> setVoteCompleted() async {
-    final userName = getUserName();
-    if (userName != null) {
+    final userId = getUserId();
+    if (userId != null) {
+      await _firestore.collection('users').doc(userId).update({'isDone': true});
+      notifyListeners();
+    }
+  }
+
+  Future<bool> isVoteCompleted() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      return userDoc['isDone'] ?? false;
+    }
+    return false;
+  }
+
+  Future<void> setVoteCompletedByUserName(String userName, bool isDone) async {
+    try {
       QuerySnapshot query = await _firestore
           .collection('users')
           .where('name', isEqualTo: userName)
           .get();
+
       if (query.docs.isNotEmpty) {
         String docId = query.docs.first.id;
         await _firestore
             .collection('users')
             .doc(docId)
-            .update({'isDone': true});
-        notifyListeners();
+            .update({'isDone': isDone});
+        notifyListeners(); // 화면 갱신
+      } else {
+        throw Exception("User not found");
       }
+    } catch (e) {
+      print("Failed to update isDone: $e");
+      throw e;
     }
   }
 }
