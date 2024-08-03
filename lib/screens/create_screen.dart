@@ -1,4 +1,5 @@
 import 'package:bump/screens/home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -20,15 +21,31 @@ class _CreateScreenState extends State<CreateScreen> {
     'assets/images/devil.png'
   ];
 
-  void _createQuestion() {
-    // 질문 생성 로직을 여기에 추가하세요
+  // Firestore에 질문을 추가하는 메서드
+  Future<void> _createQuestion() async {
     final String question = questionController.text;
-    final String selectedImage = imageOptions[_selectedImageIndex];
+    final String selectedImage = imagePath[_selectedImageIndex];
 
-    print('Question: $question');
-    print('Selected Image: $selectedImage');
+    if (question.isNotEmpty) {
+      try {
+        // Firestore에 데이터 저장
+        await FirebaseFirestore.instance.collection('questions').add({
+          'question': question, // 질문 텍스트
+          'image': selectedImage, // 선택된 이미지 경로
+        });
+        print('Question added: $question with image: $selectedImage');
 
-    // 추가적인 작업 수행
+        // 저장 후 다른 화면으로 이동하거나 알림을 표시할 수 있습니다.
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => HomeScreen()),
+        // );
+      } catch (e) {
+        print('Error adding question: $e');
+      }
+    } else {
+      print('Question text is empty');
+    }
   }
 
   @override
