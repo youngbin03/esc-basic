@@ -1,6 +1,7 @@
 import 'package:bump/auth.service.dart';
 import 'package:bump/voteprovider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,9 @@ class VotePage extends StatefulWidget {
 }
 
 class _VotePageState extends State<VotePage> {
+  //질문에 대한 답변 리스트
+  List<Map<String, String>> _responses = [];
+
   int _currentQuestionIndex = 0;
   List<Map<String, dynamic>> _questions = [];
   bool _isLoading = true;
@@ -58,7 +62,12 @@ class _VotePageState extends State<VotePage> {
     });
   }
 
-  void _nextQuestion() {
+  void _nextQuestion(String selectedAnswer) {
+    // 현재 질문에 대한 답변 저장
+    _responses.add({
+      'question': _questions[_currentQuestionIndex]['question'],
+      'answer': selectedAnswer,
+    });
     if (_currentQuestionIndex < _questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
@@ -68,6 +77,27 @@ class _VotePageState extends State<VotePage> {
       setState(() {
         _voteCompleted = true; // 모든 질문 완료 시 투표 완료 상태로 설정
       });
+      _saveResponses(); // 모든 답변 저장
+    }
+  }
+
+  // 3. 모든 답변을 Firestore에 저장하는 메서드
+  Future<void> _saveResponses() async {
+    final firestore = FirebaseFirestore.instance;
+    final userId = (await FirebaseAuth.instance.currentUser)?.uid;
+
+    if (userId != null) {
+      await firestore.collection('answers').doc(userId).set({
+        'userName': widget.userName,
+        'responses': _responses,
+      });
+      // Firestore에 투표 완료 상태 저장
+      await firestore.collection('users').doc(userId).update({'isDone': true});
+
+      // VoteProvider의 상태 업데이트
+      context.read<VoteProvider>().setVoteCompleted(true);
+
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -256,11 +286,8 @@ class _VotePageState extends State<VotePage> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
-                      setState(() {
-                        // 선택된 항목에 대한 클릭 모션 추가
-                        // 예: 선택된 항목 강조하기
-                      });
-                      _nextQuestion();
+                      // 4. _nextQuestion 호출 시 답변 전달
+                      _nextQuestion(_userNames[index]);
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -308,7 +335,9 @@ class _VotePageState extends State<VotePage> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: _nextQuestion,
+                    onPressed: () {
+                      _nextQuestion('건너뛰기');
+                    },
                     icon: const Icon(CupertinoIcons.arrow_right_circle,
                         color: Colors.white),
                     label: const Text(
