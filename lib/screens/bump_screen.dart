@@ -27,10 +27,9 @@ class _NotificationListState extends State<NotificationList> {
   Widget build(BuildContext context) {
     final User? user = _auth.currentUser;
     if (user == null) {
-      return Center(child: Text('No user logged in'));
+      return Center(child: Text('로그인을 해주세요!'));
     }
 
-    // Firestore에서 현재 사용자의 이름을 가져오는 FutureBuilder
     return FutureBuilder<DocumentSnapshot>(
       future:
           FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
@@ -45,7 +44,6 @@ class _NotificationListState extends State<NotificationList> {
           return Center(child: Text('User document not found'));
         }
 
-        // 사용자의 이름 가져오기
         final userName = snapshot.data!['name'] as String;
 
         return StreamBuilder<QuerySnapshot>(
@@ -58,25 +56,63 @@ class _NotificationListState extends State<NotificationList> {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(child: Text('No notifications found'));
+              return Center(child: Text('알림이 오지 않았어요!'));
             }
 
-            // 현재 사용자의 이름이 answer로 포함된 질문 필터링
+            final Map<String, int> questionCounts = {};
+
+            // 각 질문에 대해 나를 선택한 사람 수 계산
+            snapshot.data!.docs.forEach((doc) {
+              final responses = doc['responses'] as List<dynamic>;
+              responses.forEach((response) {
+                if (response['answer'] == userName) {
+                  final question = response['question'];
+                  if (questionCounts.containsKey(question)) {
+                    questionCounts[question] = questionCounts[question]! + 1;
+                  } else {
+                    questionCounts[question] = 1;
+                  }
+                }
+              });
+            });
+
+            // 나를 선택한 사람이 4명 이상인 질문 필터링
             final notifications = snapshot.data!.docs.where((doc) {
               final responses = doc['responses'] as List<dynamic>;
-              return responses
-                  .any((response) => response['answer'] == userName);
+              final matchedResponse = responses.firstWhere(
+                (response) => response['answer'] == userName,
+                orElse: () => null,
+              );
+              if (matchedResponse != null) {
+                final question = matchedResponse['question'];
+                return questionCounts[question] != null &&
+                    questionCounts[question]! >= 4;
+              }
+              return false;
             }).toList();
 
-            if (notifications.isEmpty) {
+            // 중복 질문 제거
+            final uniqueQuestions = <String>{};
+            final filteredNotifications = notifications.where((doc) {
+              final question = (doc['responses'] as List<dynamic>).firstWhere(
+                  (response) => response['answer'] == userName)['question'];
+              if (uniqueQuestions.contains(question)) {
+                return false;
+              } else {
+                uniqueQuestions.add(question);
+                return true;
+              }
+            }).toList();
+
+            if (filteredNotifications.isEmpty) {
               return Center(child: Text('No notifications found'));
             }
 
             return ListView.builder(
               padding: const EdgeInsets.all(16.0),
-              itemCount: notifications.length,
+              itemCount: filteredNotifications.length,
               itemBuilder: (context, index) {
-                final notification = notifications[index];
+                final notification = filteredNotifications[index];
                 final responses = notification['responses'] as List<dynamic>;
                 final matchedResponse = responses.firstWhere(
                   (response) => response['answer'] == userName,
@@ -94,7 +130,7 @@ class _NotificationListState extends State<NotificationList> {
                           pageBuilder:
                               (context, animation, secondaryAnimation) =>
                                   LetterScreen(
-                            message: matchedResponse['question'],
+                            question: matchedResponse['question'],
                           ),
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
@@ -117,7 +153,7 @@ class _NotificationListState extends State<NotificationList> {
                   );
                 }
 
-                return Container(); // Or handle the case where there is no match
+                return Container();
               },
             );
           },
@@ -149,7 +185,7 @@ class NotificationCard extends StatelessWidget {
               color: Colors.grey.withOpacity(0.5),
               spreadRadius: 2,
               blurRadius: 5,
-              offset: Offset(0, 3), // changes position of shadow
+              offset: Offset(0, 3),
             ),
           ],
           borderRadius: BorderRadius.circular(10),

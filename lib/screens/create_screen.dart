@@ -14,11 +14,11 @@ class _CreateScreenState extends State<CreateScreen> {
 
   final List<String> imageOptions = ['🤫', '🥵', '😊', '🤭', '😈'];
   final List<String> imagePath = [
-    'assets/images/quiet.png',
-    'assets/images/hot.png',
-    'assets/images/smile.png',
-    'assets/images/charm.png',
-    'assets/images/devil.png'
+    'quiet.png',
+    'hot.png',
+    'smile.png',
+    'charm.png',
+    'devil.png'
   ];
 
   // Firestore에 질문을 추가하는 메서드
@@ -35,17 +35,48 @@ class _CreateScreenState extends State<CreateScreen> {
         });
         print('Question added: $question with image: $selectedImage');
 
-        // 저장 후 다른 화면으로 이동하거나 알림을 표시할 수 있습니다.
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => HomeScreen()),
-        // );
+        // 저장 후 알림을 표시하고 홈화면으로 이동
+        _showSuccessDialog();
       } catch (e) {
         print('Error adding question: $e');
       }
     } else {
       print('Question text is empty');
     }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            '성공',
+            style: TextStyle(color: Colors.black),
+          ),
+          content: Text(
+            '질문이 성공적으로 게시되었습니다.',
+            style: TextStyle(color: Colors.black),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                );
+              },
+              child: Text(
+                '확인',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

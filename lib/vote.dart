@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class VotePage extends StatefulWidget {
   final String userName;
@@ -83,23 +84,52 @@ class _VotePageState extends State<VotePage> {
     }
   }
 
-  // 3. 모든 답변을 Firestore에 저장하는 메서드
+  // 모든 답변을 Firestore에 저장하는 메서드
   Future<void> _saveResponses() async {
     final firestore = FirebaseFirestore.instance;
     final userId = (await FirebaseAuth.instance.currentUser)?.uid;
 
     if (userId != null) {
+      final now = DateTime.now();
+      final formattedDate = DateFormat('MM월 dd일').format(now);
+
       await firestore.collection('answers').doc(userId).set({
         'userName': widget.userName,
         'responses': _responses,
+        'completedDate': formattedDate, // 투표 완료 날짜 추가
       });
+
       // Firestore에 투표 완료 상태 저장
-      await firestore.collection('users').doc(userId).update({'isDone': true});
+      await _updateUserIsDoneStatus(userId);
 
       // VoteProvider의 상태 업데이트
       context.read<VoteProvider>().setVoteCompleted(true);
 
       Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
+  Future<void> _updateUserIsDoneStatus(String userId) async {
+    final firestore = FirebaseFirestore.instance;
+    final now = DateTime.now();
+    final formattedDate = DateFormat('MM월 dd일').format(now);
+
+    // 사용자 답변을 가져옴
+    final answerSnapshot =
+        await firestore.collection('answers').doc(userId).get();
+    final answerData = answerSnapshot.data();
+
+    if (answerData != null) {
+      final completedDate = answerData['completedDate'];
+
+      // 오늘 날짜와 비교
+      final isDone = completedDate == formattedDate;
+
+      // 사용자 상태 업데이트
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .update({'isDone': isDone});
     }
   }
 
