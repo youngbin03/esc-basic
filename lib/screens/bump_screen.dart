@@ -2,6 +2,7 @@ import 'package:bump/screens/letter_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class BumpScreen extends StatelessWidget {
   @override
@@ -105,7 +106,7 @@ class _NotificationListState extends State<NotificationList> {
             }).toList();
 
             if (filteredNotifications.isEmpty) {
-              return Center(child: Text('No notifications found'));
+              return Center(child: Text('알림이 오지 않았어요!'));
             }
 
             return ListView.builder(
@@ -120,9 +121,12 @@ class _NotificationListState extends State<NotificationList> {
                 );
 
                 if (matchedResponse != null) {
+                  final question = matchedResponse['question'];
+                  final completedDate = notification['completedDate'] as String;
+
                   return NotificationCard(
-                    message: matchedResponse['question'],
-                    date: '8월 3일',
+                    message: question,
+                    date: completedDate,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -130,7 +134,7 @@ class _NotificationListState extends State<NotificationList> {
                           pageBuilder:
                               (context, animation, secondaryAnimation) =>
                                   LetterScreen(
-                            question: matchedResponse['question'],
+                            question: question,
                           ),
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {

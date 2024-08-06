@@ -20,6 +20,12 @@ class VoteProvider with ChangeNotifier {
     }
   }
 
+  Future<void> checkIfUserCompletedVoteToday(AuthService authService) async {
+    final isCompleted = await authService.checkIfUserCompletedVoteToday();
+    print('checkIfUserCompletedVoteToday: $isCompleted'); // 디버깅 메시지
+    setVoteCompleted(isCompleted);
+  }
+
   void setVoteCompleted(bool isCompleted) {
     _isVoteCompleted = isCompleted;
     notifyListeners();

@@ -93,9 +93,19 @@ class _VotePageState extends State<VotePage> {
       final now = DateTime.now();
       final formattedDate = DateFormat('MM월 dd일').format(now);
 
+      // 기존 답변을 가져오기
+      final existingAnswersDoc =
+          await firestore.collection('answers').doc(userId).get();
+      final existingAnswers = existingAnswersDoc.exists
+          ? List<Map<String, String>>.from(existingAnswersDoc['responses'])
+          : [];
+
+      // 새로운 답변 추가
+      existingAnswers.addAll(_responses);
+
       await firestore.collection('answers').doc(userId).set({
         'userName': widget.userName,
-        'responses': _responses,
+        'responses': existingAnswers,
         'completedDate': formattedDate, // 투표 완료 날짜 추가
       });
 
@@ -250,7 +260,7 @@ class _VotePageState extends State<VotePage> {
         leading: IconButton(
           icon: Icon(CupertinoIcons.clear, color: Colors.white),
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/');
+            Navigator.pushReplacementNamed(context, '/home');
           },
         ),
         title: Text('${_questions.length}개 중 ${_currentQuestionIndex + 1}번째',

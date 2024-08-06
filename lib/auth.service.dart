@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -119,7 +120,13 @@ class AuthService extends ChangeNotifier {
       onSuccess();
       notifyListeners(); // 로그인 상태 변경 알림
     } on FirebaseAuthException catch (e) {
-      onError(e.message!);
+      if (e.code == 'user-not-found') {
+        onError('등록되어 있지 않은 사용자입니다.');
+      } else if (e.code == 'wrong-password') {
+        onError('잘못된 비밀번호입니다.');
+      } else {
+        onError(e.message!);
+      }
     } catch (e) {
       onError(e.toString());
     }
@@ -169,6 +176,42 @@ class AuthService extends ChangeNotifier {
       }
     } catch (e) {
       print("Failed to update isDone: $e");
+      throw e;
+    }
+  }
+
+  Future<bool> checkIfUserCompletedVoteToday() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final now = DateTime.now();
+      final formattedDate = DateFormat('MM월 dd일').format(now);
+
+      final answerDoc =
+          await _firestore.collection('answers').doc(user.uid).get();
+      if (answerDoc.exists) {
+        final data = answerDoc.data();
+        final completedDate = data?['completedDate'];
+        print('User completed vote on: $completedDate'); // 디버깅 메시지
+        return completedDate == formattedDate;
+      }
+    }
+    return false;
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // Firestore에서 사용자 데이터 삭제
+        await _firestore.collection('users').doc(user.uid).delete();
+
+        // Firebase Authentication에서 사용자 계정 삭제
+        await user.delete();
+
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Failed to delete account: $e");
       throw e;
     }
   }

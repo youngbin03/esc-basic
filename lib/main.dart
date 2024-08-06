@@ -16,6 +16,7 @@ import 'auth.service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // main 함수에서 async 사용하기 위함
   await Firebase.initializeApp(); // firebase 앱 시작
+
   runApp(
     MultiProvider(
       providers: [
@@ -35,6 +36,12 @@ class MyApp extends StatelessWidget {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
         final user = authService.currentUser();
+        if (user != null) {
+          // 사용자가 로그인 되어 있으면 투표 완료 상태를 확인하여 VoteProvider 업데이트
+          context
+              .read<VoteProvider>()
+              .checkIfUserCompletedVoteToday(authService);
+        }
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
@@ -43,7 +50,7 @@ class MyApp extends StatelessWidget {
           home: user == null ? Onboarding() : HomeScreen(),
           routes: {
             '/enter': (context) => EnterClass(),
-            '/signup': (context) => SignUp(),
+            '/signup': (context) => SignUpScreen(),
             '/home': (context) => HomeScreen(),
             '/signin': (context) => SigninScreen(),
             '/photo': (context) => ProfilePhotoScreen(),

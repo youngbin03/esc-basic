@@ -3,28 +3,28 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyDXRi11NFE-_Rb0aflT4jtukk-fdylTwFE</string>
+	<string>AIzaSyDvVVbmupTl7JcY3SqHmeEyThDx83Ulbcw</string>
 	<key>GCM_SENDER_ID</key>
-	<string>990691313684</string>
+	<string>727632334880</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.bump</string>
+	<string>com.eos.bump</string>
 	<key>PROJECT_ID</key>
-	<string>bump-c23e6</string>
+	<string>bump-eos</string>
 	<key>STORAGE_BUCKET</key>
-	<string>bump-c23e6.appspot.com</string>
+	<string>bump-eos.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_GCM_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:990691313684:ios:5640dc2a8833dc318c7f01</string>
+	<string>1:727632334880:ios:ca5ba01cdc18a4649cac45</string>
 </dict>
 </plist>

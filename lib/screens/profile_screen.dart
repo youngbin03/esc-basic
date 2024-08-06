@@ -106,8 +106,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
-                      // 회원 탈퇴 로직을 여기에 추가하세요
-                      // 예시: authService.deleteAccount();
+                      _showDeleteConfirmationDialog(context, authService);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
@@ -128,6 +127,70 @@ class ProfileScreen extends StatelessWidget {
             ),
           );
         }
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(
+      BuildContext context, AuthService authService) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            '회원 탈퇴',
+            style: TextStyle(color: Colors.black),
+          ),
+          content: Text(
+            '정말로 BUMP를 떠나시겠어요?',
+            style: TextStyle(color: Colors.black),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 아니요를 클릭하면 다이얼로그를 닫습니다.
+              },
+              child: Text(
+                '아니요',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // 네를 클릭하면 다이얼로그를 닫습니다.
+                try {
+                  await authService.deleteAccount();
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/signin', (route) => false);
+                } catch (e) {
+                  print("회원 탈퇴 실패: $e");
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('회원 탈퇴 실패'),
+                        content: Text('회원 탈퇴 중 오류가 발생했습니다.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('확인'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+              child: Text(
+                '네',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+        );
       },
     );
   }

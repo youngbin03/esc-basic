@@ -159,19 +159,30 @@ class _EnterClassState extends State<EnterClass> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0), // 전체 패딩 추가
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildClassCard(
-                context, 'Basic Class', '한양대학교 컴퓨터소프트', '사용중', basicClassCount),
-            SizedBox(height: 16),
-            buildClassCard(context, 'Advance Class', '한양대학교 컴퓨터소프트', '사용중',
-                advanceClassCount),
-          ],
-        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0), // 전체 패딩 추가
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildClassCard(context, 'Basic Class', '한양대학교 컴퓨터소프트',
+                        '사용중', basicClassCount),
+                    SizedBox(height: 16),
+                    buildClassCard(context, 'Advance Class', '한양대학교 컴퓨터소프트',
+                        '사용중', advanceClassCount),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

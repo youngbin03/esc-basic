@@ -1,6 +1,6 @@
 import 'package:bump/auth.service.dart';
 import 'package:bump/screens/bump_screen.dart';
-import 'package:bump/screens/prfile_screen.dart';
+import 'package:bump/screens/profile_screen.dart';
 import 'package:bump/screens/vote_screen.dart';
 import 'package:bump/vote.dart';
 import 'package:bump/voteprovider.dart';

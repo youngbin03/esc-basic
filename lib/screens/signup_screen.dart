@@ -2,16 +2,15 @@ import 'package:bump/auth.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:bump/auth.service.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({Key? key}) : super(key: key);
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<SignUp> {
+class _LoginScreenState extends State<SignUpScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -141,7 +140,7 @@ class _LoginScreenState extends State<SignUp> {
                         content: Text("회원가입 성공"),
                       ));
                       Navigator.pop(context); // 바텀시트를 닫고 홈 화면으로 이동
-                      Navigator.pushNamed(context, '/photo');
+                      Navigator.pushNamed(context, '/home');
                     },
                     onError: (err) {
                       print("회원가입 실패: $err");
@@ -182,6 +181,11 @@ class _LoginScreenState extends State<SignUp> {
   Widget build(BuildContext context) {
     final String selectedClass =
         ModalRoute.of(context)!.settings.arguments as String;
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
     return Consumer<AuthService>(
       builder: (context, authService, child) {
         return Scaffold(
@@ -197,97 +201,102 @@ class _LoginScreenState extends State<SignUp> {
             ),
           ),
           extendBodyBehindAppBar: true,
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.red,
-                  Colors.orange,
-                  const Color.fromARGB(255, 255, 136, 0)
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          body: SingleChildScrollView(
+            reverse: true,
+            child: Container(
+              height: screenHeight - keyboardHeight,
+              width: screenWidth,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.red,
+                    Colors.orange,
+                    const Color.fromARGB(255, 255, 136, 0)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-            ),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      '너의 이름을 알려줘',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 30,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Name',
-                        labelStyle: TextStyle(color: Colors.white),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(8.0),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '너의 이름을 알려줘',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 30,
                         ),
                       ),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'PIN',
-                        labelStyle: TextStyle(color: Colors.white),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      style: TextStyle(color: Colors.white),
-                      obscureText: true,
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 24),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _showBottomSheet(
-                              context, nameController.text, selectedClass);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.orange,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 62, vertical: 12),
-                          shape: RoundedRectangleBorder(
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Name',
+                          labelStyle: TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        child: Text(
-                          '시작하기',
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'PIN',
+                          labelStyle: TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        style: TextStyle(color: Colors.white),
+                        obscureText: true,
+                        keyboardType: TextInputType.number,
+                      ),
+                      SizedBox(height: 24),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _showBottomSheet(
+                                context, nameController.text, selectedClass);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.orange,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 62, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                          child: Text(
+                            '시작하기',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
